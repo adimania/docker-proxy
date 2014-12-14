@@ -17,3 +17,7 @@ Example:
 $ nohup go run docker-proxy.go --port 4321 &
 $ docker -H tcp://docker_host:4321 ps
 ```
+What is wrong?
+--------------
+* If the reply by docker daemon is long, then the response is chunked and right now handling of that is really screwed up.
+* I am a golang novice. The code works but might be unoptimized. 
