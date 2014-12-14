@@ -3,7 +3,6 @@ package main
 import "fmt"
 import "net"
 import "flag"
-import "bytes"
 
 func check_strict(e error) {
     if e != nil {
@@ -21,23 +20,30 @@ func server(port string) {
     conn, err := net.Listen("tcp", ":"+port)
     defer conn.Close()
 
-    buf := make([]byte, 1024)
+    so_buf := make([]byte, 1024*1024)
     check_strict(err)
     for {
         so, err := conn.Accept()
         check_warn(err)
-        buf = make([]byte, 1024)
-        so.Read(buf)
+        so_buf = make([]byte, 1024*1024)
+        so_len, err := so.Read(so_buf)
+        check_warn(err)
+        doc_buf := make([]byte, 1024*1024)
         if err != nil {
             check_warn(err)
         } else {
-            n := bytes.Index(buf, []byte{0})         
             doc_socket, err := net.Dial("unix", "/var/run/docker.sock")
             check_strict(err)
-            _, err = doc_socket.Write(buf[:n])
+            _, err = doc_socket.Write(so_buf[:so_len])
+
+            doc_len, err := doc_socket.Read(doc_buf)
+            fmt.Printf("len is: %d\n", doc_len)
+            fmt.Println("reply: "+string(doc_buf[:doc_len]))
+            so.Write(doc_buf[:doc_len])
+
             check_warn(err)
             doc_socket.Close()
-            fmt.Println(string(buf[:n]))
+            fmt.Println(string(so_buf[:so_len]))
             so.Close()
         }
     } 
