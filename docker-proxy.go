@@ -33,9 +33,6 @@ func server(port string) {
         so_len, err := so.Read(so_buf)
         if check_warn(err) {
             continue
-        }
-        if check_warn(err) {
-            continue
         } else {
             doc_socket, err := net.Dial("unix", "/var/run/docker.sock")
             check_strict(err)
