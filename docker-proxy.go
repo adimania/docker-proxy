@@ -23,18 +23,17 @@ func server(port string) {
     defer conn.Close()
 
     so_buf := make([]byte, 1024*1024)
+    doc_buf := make([]byte, 1024*1024)
     check_strict(err)
     for {
         so, err := conn.Accept()
         if check_warn(err) {
             continue
         }
-        so_buf = make([]byte, 1024*1024)
         so_len, err := so.Read(so_buf)
         if check_warn(err) {
             continue
         }
-        doc_buf := make([]byte, 1024*1024)
         if check_warn(err) {
             continue
         } else {
