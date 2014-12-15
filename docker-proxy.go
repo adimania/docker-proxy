@@ -17,7 +17,7 @@ func check_warn(e error) {
 }
 
 func server(port string) {
-    conn, err := net.Listen("tcp", ":"+port)
+    conn, err := net.Listen("tcp", ":" + port)
     defer conn.Close()
 
     so_buf := make([]byte, 1024*1024)
@@ -29,9 +29,8 @@ func server(port string) {
         so_len, err := so.Read(so_buf)
         check_warn(err)
         doc_buf := make([]byte, 1024*1024)
-        if err != nil {
-            check_warn(err)
-        } else {
+        check_warn(err)
+        if err == nil {
             doc_socket, err := net.Dial("unix", "/var/run/docker.sock")
             check_strict(err)
             _, err = doc_socket.Write(so_buf[:so_len])
