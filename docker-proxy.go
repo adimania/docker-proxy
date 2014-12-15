@@ -10,10 +10,12 @@ func check_strict(e error) {
     }
 }
 
-func check_warn(e error) {
+func check_warn(e error) bool {
     if e != nil {
         fmt.Println(e)
+        return true
     }
+    return false
 }
 
 func server(port string) {
@@ -24,13 +26,18 @@ func server(port string) {
     check_strict(err)
     for {
         so, err := conn.Accept()
-        check_warn(err)
+        if check_warn(err) {
+            continue
+        }
         so_buf = make([]byte, 1024*1024)
         so_len, err := so.Read(so_buf)
-        check_warn(err)
+        if check_warn(err) {
+            continue
+        }
         doc_buf := make([]byte, 1024*1024)
-        check_warn(err)
-        if err == nil {
+        if check_warn(err) {
+            continue
+        } else {
             doc_socket, err := net.Dial("unix", "/var/run/docker.sock")
             check_strict(err)
             _, err = doc_socket.Write(so_buf[:so_len])
@@ -40,7 +47,9 @@ func server(port string) {
             fmt.Println("reply: "+string(doc_buf[:doc_len]))
             so.Write(doc_buf[:doc_len])
 
-            check_warn(err)
+            if check_warn(err) {
+                continue
+            }
             doc_socket.Close()
             fmt.Println(string(so_buf[:so_len]))
             so.Close()
