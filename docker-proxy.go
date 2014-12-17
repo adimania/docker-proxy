@@ -21,36 +21,32 @@ func check_warn(e error) bool {
 func server(port string) {
     conn, err := net.Listen("tcp", ":" + port)
     defer conn.Close()
-
-    so_buf := make([]byte, 1024*1024)
-    doc_buf := make([]byte, 1024*1024)
     check_strict(err)
     for {
         so, err := conn.Accept()
+        defer so.Close()
         if check_warn(err) {
             continue
         }
-        so_len, err := so.Read(so_buf)
-        if check_warn(err) {
-            continue
-        } else {
-            doc_socket, err := net.Dial("unix", "/var/run/docker.sock")
-            check_strict(err)
-            _, err = doc_socket.Write(so_buf[:so_len])
-
-            doc_len, err := doc_socket.Read(doc_buf)
-            fmt.Printf("len is: %d\n", doc_len)
-            fmt.Println("reply: "+string(doc_buf[:doc_len]))
-            so.Write(doc_buf[:doc_len])
-
-            if check_warn(err) {
-                continue
-            }
-            doc_socket.Close()
-            fmt.Println(string(so_buf[:so_len]))
-            so.Close()
-        }
+        go proxyHandler(so)
     } 
+}
+
+func proxyHandler(so net.Conn) {
+    so_buf := make([]byte, 1024*1024)
+    doc_buf := make([]byte, 1024*1024)
+    so_len, err := so.Read(so_buf)
+    check_strict(err)
+    doc_socket, err := net.Dial("unix", "/var/run/docker.sock")
+    check_strict(err)
+    _, err = doc_socket.Write(so_buf[:so_len])
+    doc_len, err := doc_socket.Read(doc_buf)
+    fmt.Printf("len is: %d\n", doc_len)
+    fmt.Println("reply: "+string(doc_buf[:doc_len]))
+    so.Write(doc_buf[:doc_len])
+    check_strict(err)
+    doc_socket.Close()
+    fmt.Println(string(so_buf[:so_len]))
 }
 
 func main() {
