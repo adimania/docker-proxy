@@ -38,15 +38,17 @@ func proxyHandler(so net.Conn) {
     so_len, err := so.Read(so_buf)
     check_strict(err)
     doc_socket, err := net.Dial("unix", "/var/run/docker.sock")
+    defer doc_socket.Close()
     check_strict(err)
     _, err = doc_socket.Write(so_buf[:so_len])
-    doc_len, err := doc_socket.Read(doc_buf)
-    fmt.Printf("len is: %d\n", doc_len)
-    fmt.Println("reply: "+string(doc_buf[:doc_len]))
-    so.Write(doc_buf[:doc_len])
-    check_strict(err)
-    doc_socket.Close()
-    fmt.Println(string(so_buf[:so_len]))
+    for {
+        doc_len, err := doc_socket.Read(doc_buf)
+        fmt.Printf("len is: %d\n", doc_len)
+        fmt.Println("reply: "+string(doc_buf[:doc_len]))
+        so.Write(doc_buf[:doc_len])
+        check_strict(err)
+        fmt.Println(string(so_buf[:so_len]))
+    }
 }
 
 func main() {
