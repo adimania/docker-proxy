@@ -10,7 +10,7 @@ Why?
 
 How do I use it?
 ----------------
-This is a transparent proxy. So one can just run it on the docker server as a member of docker group or as root (former is preferred) and the use docker to fire commands normally with an additional -H flah.
+This is a proxy. So one can just run it on the docker server as a member of docker group or as root (former is preferred) and the use docker to fire commands normally with an additional -H flah.
 
 Example:
 ```
@@ -19,5 +19,4 @@ $ docker -H tcp://docker_host:4321 ps
 ```
 What is wrong?
 --------------
-* If the reply by docker daemon is long, then the response is chunked and right now handling of that is really screwed up.
 * I am a golang novice. The code works but might be unoptimized. 
